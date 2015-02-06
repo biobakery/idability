@@ -1,0 +1,430 @@
+#! /usr/bin/env python
+
+import os, sys, argparse, csv
+
+# ---------------------------------------------------------------
+# description
+# ---------------------------------------------------------------
+
+description = """
+DESCRIPTION:
+
+  This is a python program for generating and evaluating 
+  hitting-set based codes. The program operates on tabular data 
+  organized with subjects as columns and features as rows.
+  (Also known as PCL format.)
+
+BASIC OPERATION:
+
+  When the program is given a table, it will attempt to construct 
+  a unique set of features for each subject:
+
+  $ python idability.py time1_table.pcl
+
+  When given a table and a set of codes, the program will report 
+  which subjects are hit by which codes:
+
+  $ python idability.py time2_table.pcl --codes time1_codes.txt
+
+  Without setting any additional arguments, the code construction
+  process will be naive: only presence/absence information is
+  considered and minimal codes are prioritized.
+
+  Setting '--paper_mode [relab/rpkm]' will configure all settings
+  to behave like those used for the paper. For example,
+
+  $ python idability.py table.pcl --paper_mode rpkm
+
+  is equivalent to:
+
+  $ python idability.py table.pcl -s 0.8 -m 7 -d 5 -n 0.05 -r abundance_gap
+
+  Parameters can be fine-tuned for user-specific applications.
+
+ARGUMENTS:
+"""
+
+# ---------------------------------------------------------------
+# constants
+# ---------------------------------------------------------------
+
+c_na = "#N/A"
+c_epsilon = 1e-20
+c_codes_extension = "codes.txt"
+c_hits_extension = "hits.txt"
+
+# ---------------------------------------------------------------
+# utilities
+# ---------------------------------------------------------------
+
+def funcGetArgs ():
+    """ master argument parser """
+
+    parser = argparse.ArgumentParser( 
+        description=description, 
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    parser.add_argument( 'table',
+                         type=str,
+                         help="""
+                         Tab-delimited table file to encode/decode.
+                         PCL format: rows are features, cols are samples, both have headers
+                         """,
+    )
+    parser.add_argument( "-c", '--codes',
+                         type=str,
+                         help="""
+                         Codes file produced in an earlier run.
+                         Specifying this option will compare codes to input table.
+                         """,
+    )
+    parser.add_argument( "-j", '--jaccard_similarity_cutoff',  
+                         type=float,
+                         help="""
+                         If set, an encoded feature will 'knock out' similar features
+                         at the specified threshold (Jaccard score in [0-1]).
+                         """,
+    )
+    parser.add_argument( "-m", '--min_code_size',
+                         type=int,
+                         default=1,
+                         help="""If set, codes will continue to be lengthened beyond
+                         the point of uniqueness. Limits spurious hits in time-varying data.
+                         """,
+    )
+    parser.add_argument( "-d", '--abund_detect',
+                         type=float,
+                         default=c_epsilon,
+                         help="""
+                         Features with values above this are scored as confidently present.
+                         When running in encode mode, this restricts the features that can be added to a code.
+                         When running in decode mode, this restricts the features that can be hit by a code.
+                         """,
+    )
+    parser.add_argument( "-n", '--abund_nondetect',        
+                         type=float,
+                         default=c_epsilon,
+                         help="""
+                         Features with values below this are scored as confidently absent.
+                         Only applied to encode mode. A subject with a feature below this threshold
+                         is considered to be 'missing' the feature for hitting set purposes.
+                         """,
+    )
+    parser.add_argument( "-r", "--ranking",
+                         type=str,
+                         default="rarity",
+                         choices=["rarity", "abundance_gap"],
+                         help="""
+                         The method by which an individual's features should be prioritized when
+                         building codes. The default, rarity, prioritizess-less prevalent features.
+                         The alternative method, abundance_gap, prioritizes features with a large 
+                         abundance gap between the individual's value and the next highest value.
+                         """,
+    )
+    parser.add_argument( "-o", "--output",
+                         type=str,
+                         help="""
+                         Name for the output file (codes or confusion matrix, depending on mode).
+                         If not supplied, a default will be constructed from the input file names.
+                         """,
+    )
+    parser.add_argument( "-p", "--paper_mode",
+                         type=str,
+                         choices=["relab", "rpkm"],
+                         default="rpkm",
+                         help="""
+                         Automatically set all variables to those used in the paper.
+                         Overrides all defaults, which otherwise give naive codes.
+                         """,
+    )
+
+    args = parser.parse_args()
+    return args
+
+def funcPathToName ( path ):
+    return os.path.split( path )[1].split( "." )[0]
+
+def funcLoadSFV ( path, cutoff ):
+    """ 
+    Loads a table file to a nested dict (sfv: sample->feature->value)
+    Values below cutoff are ignored to save space
+    """
+    sfv = {}
+    with open( path ) as fh:
+        headers = None
+        for row in csv.reader( fh, dialect="excel-tab" ):
+            if headers is None:
+                headers = row[1:]
+                sfv = {header:{} for header in headers}
+            else:
+                feature, values = row[0], map( float, row[1:] )
+                assert len( values ) == len( headers ), \
+                    "row length mismatch"
+                for header, value in zip( headers, values ):
+                    if value >= cutoff:
+                        sfv[header][feature] = value
+    return sfv
+
+def funcReduceSFV ( sfv, cutoff, greater=True ):
+    """
+    rebuild sfv with only entries > cutoff
+    maintain all samples (s), even if no features in sample meet cutoff
+    """
+    temp = {sample:{} for sample in sfv}
+    for sample, fdict in sfv.items():
+        for feature, value in fdict.items():
+            if ( greater and value >= cutoff ) or ( not greater and value < cutoff ):
+                temp[sample][feature] = value
+    return temp
+
+def funcFlipSFV ( sfv ):
+    """
+    Make a fsv object, i.e. feature->sample->value map
+    """
+    fsv = {}
+    for subject, fdict in sfv.items():
+        for feature, value in fdict.items():
+            fsv.setdefault( feature, {} )[subject] = value
+    return fsv
+
+def funcSetForm ( nested_dict ):
+    """ 
+    reduces inner dict to key set when we're done with values
+    """
+    return {k:set( v.keys() ) for k, v in nested_dict.items()}
+
+def funcCheckHits ( sample_hits ):
+    """
+    produces confusion results by comparing keys to lists of hit subjects
+    """
+    counts = {k:0 for k in "1|TP 3|FN+FP 2|TP+FP 4|FN 5|NA".split()}
+    for subject, hits in sample_hits.items():
+        if hits is None:
+            counts["5|NA"] += 1
+        else:
+            tp_hit = True if subject in hits else False
+            fp_hit = True if len([subject2 for subject2 in hits if subject2 != subject]) > 0 else False
+            if tp_hit:
+                key = "2|TP+FP" if fp_hit else "1|TP"
+            else:
+                key = "3|FN+FP" if fp_hit else "4|FN"
+            counts[key] += 1
+    return counts
+
+def funcWriteCodes ( sample_codes, path ):
+    with open( path, "w" ) as fh:
+        print >>fh, "#SAMPLE\tCODE"
+        for sample in sorted( sample_codes.keys() ):
+            code = sample_codes[sample]
+            items = [sample] 
+            items += [c_na] if code is None else code
+            print >>fh, "\t".join( items )
+    print >>sys.stderr, "wrote codes to:", path
+
+def funcReadCodes ( path ):
+    sample_codes = {}
+    with open( path ) as fh:
+        fh.readline() # headers
+        for line in fh:
+            items = line.strip().split( "\t" )
+            sample, code = items[0], items[1:]
+            sample_codes[sample] = code if c_na not in code else None
+    return sample_codes
+
+def funcWriteHits ( subject_hits, path ):
+    # compute confusion line
+    confusion = funcCheckHits( subject_hits )
+    with open( path, "w" ) as fh:
+        for confusion_class in sorted( confusion ):
+            count = confusion[confusion_class]
+            print >>fh, "# %s: %d" % ( confusion_class, count )
+        for subject in sorted( subject_hits ):
+            hits = subject_hits[subject]
+            items = [subject]
+            if hits is None:
+                items += ["no_code", c_na]
+            else:
+                items += ["matches" if len( hits ) > 0 else "no_matches"]
+                items += hits
+            print >>fh, "\t".join( items )
+    print >>sys.stderr, "wrote hits to:", path
+
+# ---------------------------------------------------------------------------
+# encode part
+# ---------------------------------------------------------------------------
+
+def funcJaccard ( set1, set2 ):
+    """ 
+    jaccard similarity for two sets
+    """
+    count_union = len( set1.__or__( set2 ) )
+    count_intersection = len( set1.__and__( set2 ) )
+    return count_intersection / float( count_union )
+
+def funcRankAbundGap( sfv, fsv, abund_nondetect ):
+    """ 
+    abundance gap sorting sfv features
+    """
+    sorted_features = {}
+    for subject, fdict in sfv.items():
+        gaps = {}
+        for feature, focal_value in fdict.items():
+            lesser_values = [abund_nondetect]
+            lesser_values += [v for k, v in fsv[feature].items() \
+                              if v <= focal_value and k != subject]
+            gaps[feature] = focal_value - max( lesser_values )
+        sorted_features[subject] = sorted( 
+            gaps.keys(), key=lambda feature: gaps[feature], )
+    return sorted_features
+
+def funcRankRarity( sfv, fsv, abund_nondetect ):
+    """
+    rarity sorting of sfv features
+    """
+    sorted_features = {}
+    for subject, fdict in sfv.items():
+        sorted_features[subject] = sorted( 
+            fdict.keys(), key=lambda feature: len( fsv[feature] ), 
+            reverse=True, )
+    return sorted_features
+
+def funcMakeOneCode ( sample, ranked_features, sfv_sets, fsv_sets, \
+                      similarity_cutoff, min_code_size ):
+    """ execute the idabilty algorithm for one sample """
+    features = ranked_features[:]
+    other_samples = {sample2 for sample2 in sfv_sets if sample2 != sample}
+    code = []
+    while len( features ) > 0 and \
+          ( len( other_samples ) > 0 or len( code ) < min_code_size ):
+        feature = features.pop()
+        code.append( feature )
+        # restrict other samples
+        old_count = len( other_samples )
+        other_samples = other_samples.__and__( fsv_sets[feature] )
+        new_count = len( other_samples )
+        # forget current feature if it doesn't improve things
+        # *** unless we've already knocked everyone out and are just lengthening code ***
+        if old_count == new_count and old_count != 0:
+            code.pop()
+        # restrict remaining features to avoid similarity to best feature
+        if similarity_cutoff is not None:
+            features = filter( lambda feature2: \
+                               funcJaccard( fsv_sets[feature], fsv_sets[feature2] ) < \
+                               similarity_cutoff, features )
+    return code if len( other_samples ) == 0 else None
+
+def funcEncode ( sfv, abund_detect, abund_nondetect, similarity_cutoff, min_code_size, ranking="rarity" ):
+    """    run idability algorithm on all samples """
+    # flip sfv to fsv
+    fsv = funcFlipSFV( sfv )
+    # rebuild sfv with only features above abund threshold
+    sfv = funcReduceSFV( sfv, cutoff=abund_detect )
+    # prioritize features
+    print >>sys.stderr, "performing requested feature ranking:", ranking
+    funcRank = {"rarity":funcRankRarity, "abundance_gap":funcRankAbundGap}[ranking]
+    sorted_features = funcRank( sfv, fsv, abund_nondetect )
+    # simplify sfv and fsv to sets
+    sfv_sets = funcSetForm( sfv )
+    fsv_sets = funcSetForm( fsv )
+    # make codes for each sample
+    sample_codes = {}
+    for i, sample in enumerate( sfv_sets.keys() ):
+        sample_codes[sample] = funcMakeOneCode( 
+            sample, 
+            sorted_features[sample],
+            sfv_sets,
+            fsv_sets,
+            similarity_cutoff, 
+            min_code_size,
+        )
+    return sample_codes
+
+# ---------------------------------------------------------------------------
+# decode part
+# ---------------------------------------------------------------------------
+
+def funcCheckOneCode ( code, sfv_sets ):
+    """ determines which subjects hit a given code (as set) """
+    code_set = set( code )
+    hits = []
+    for sample, features_set in sfv_sets.items():
+        if code_set.issubset( features_set ):
+            hits.append( sample )
+    return hits
+
+def funcDecode ( sfv, sample_codes, abund_detect ):
+    """    """
+    sfv_sets = funcSetForm( funcReduceSFV( sfv, abund_detect ) )
+    sample_hits = {}
+    for sample, code in sample_codes.items():
+        sample_hits[sample] = None if code is None else funcCheckOneCode( code, sfv_sets )
+    return sample_hits
+
+# ---------------------------------------------------------------
+# main
+# ---------------------------------------------------------------
+
+def main ( ):
+    
+    # process arguments
+    args = funcGetArgs()
+    table_path = args.table
+    codes_path = args.codes
+    abund_detect = args.abund_detect
+    abund_nondetect = args.abund_nondetect
+    similarity_cutoff = args.jaccard_similarity_cutoff
+    min_code_size = args.min_code_size
+    ranking = args.ranking
+    output_path = args.output
+
+    # overrides
+    if args.paper_mode is not None:
+        choice = args.paper_mode
+        abund_detect = 5.0 if choice == "rpkm" else 0.001
+        abund_detect = abund_detect / 10.0 if args.codes is not None else abund_detect
+        abund_nondetect = abund_detect / 100.0
+        similarity_cutoff = 0.8
+        min_code_size = 7
+        ranking = "abundance_gap"
+
+    # determine output file name
+    if output_path is None:
+        items = [funcPathToName( table_path )]
+        if codes_path is None:
+            items.append( c_codes_extension )
+        else:
+            items.append( funcPathToName( codes_path ) )
+            items.append( c_hits_extension )
+        output_path = ".".join( items )
+
+    # do this for either encoding/decoding
+    print >>sys.stderr, "loading table file:", table_path
+    sfv = funcLoadSFV( table_path, abund_nondetect )
+
+    # make codes mode
+    if codes_path is None:
+        print >>sys.stderr, "encoding the table"
+        sample_codes = funcEncode( 
+            sfv, 
+            abund_detect=abund_detect, 
+            abund_nondetect=abund_nondetect, 
+            similarity_cutoff=similarity_cutoff,
+            min_code_size=min_code_size,
+            ranking=ranking,
+        )
+        funcWriteCodes( sample_codes, output_path )
+
+    # compare codes to table mode
+    else:
+        print >>sys.stderr, "decoding the table"
+        sample_codes = funcReadCodes( codes_path )
+        sample_hits = funcDecode( 
+            sfv, 
+            sample_codes,
+            abund_detect=abund_detect,
+        )
+        funcWriteHits( sample_hits, output_path )
+
+if __name__ == "__main__":
+    main()
