@@ -169,3 +169,17 @@ These settings can be individually fine-tuned for user-specific applications. Co
 #!cmd
 $ ./idability.py -h
 ```
+
+##**Preprocessed Metagenomics Datasets**##
+
+The following datasets were used in the publication and are available for download. There is one gzipped tarball for each type of metagenomic features (OTUs, species, marker genes [markers], and kilobase windows [kbwindows]). Each tarball contains pairs of files for each body site: one file is a table reflecting subjects' feature measurements at their first visit (visit1), and a second file contains values from the follow-up visit (visit2). For example, ``otus-tables.tar.gz`` contains:
+
+* ``otus-anterior_nares-visit1.pcl``
+* ``otus-anterior_nares-visit2.pcl``
+
+(Along with similar pairings for 17 other body sites). The table formats are as described above (tab-delimitted with feature rows and subject columns). All data are derived from raw sequencing reads and analysis conducted during the [Human Microbiome Project (HMP)](http://www.hmpdacc.org/). Additional details of the features and datasets are available in the publication.
+
+* [Download OTU paired tables](https://bitbucket.org/biobakery/idability/downloads/otus-tables.tar.gz)
+* [Download MetaPhlAn species paired tables](https://bitbucket.org/biobakery/idability/downloads/species-tables.tar.gz)
+* [Download MetaPhlAn marker genes paired tables](https://bitbucket.org/biobakery/idability/downloads/markers-tables.tar.gz)
+* [Download Kilobase Windows paired tables](https://bitbucket.org/biobakery/idability/downloads/kbwindows-tables.tar.gz)
