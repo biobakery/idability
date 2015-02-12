@@ -82,7 +82,7 @@ The demo contains a second file, ``demo2.pcl``, which represents a perturbation 
 
 ```
 #!cmd
-$ idability.py demo2.pcl --codes demo1.codes.txt
+$ ./idability.py demo2.pcl --codes demo1.codes.txt
 ```
 
 Produces a file called ``demo2.demo1.hits.txt``. The first few lines of this file look like:
@@ -118,8 +118,8 @@ Try running the default code construction process used above on the visit1 file,
 
 ```
 #!cmd
-$ idability.py stool-markers-visit1.pcl
-$ idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt
+$ ./idability.py stool-markers-visit1.pcl
+$ ./idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt
 ```
 
 This yields:
@@ -138,8 +138,8 @@ The results are less than stellar due to the prioritization of minimal (unstable
 
 ```
 #!cmd
-$ idability.py stool-markers-visit1.pcl --meta_mode rpkm
-$ idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt --meta_mode rpkm
+$ ./idability.py stool-markers-visit1.pcl --meta_mode rpkm
+$ ./idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt --meta_mode rpkm
 ```
 
 ```
@@ -167,5 +167,5 @@ These settings can be individually fine-tuned for user-specific applications. Co
 
 ```
 #!cmd
-$ idability.py -h
+$ ./idability.py -h
 ```
