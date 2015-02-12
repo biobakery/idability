@@ -1,6 +1,6 @@
 [TOC]
 
-#**idability.py: software for building and evaluating hitting-set-based codes**#
+#**idability.py: build and evaluating hitting-set-based codes**#
 
 AUTHORS: Eric A. Franzosa (franzosa@hsph.harvard.edu), Curtis Huttenhower (chuttenh@hsph.harvard.edu)
 
@@ -65,7 +65,7 @@ The demo contains a second file, ``demo2.dat``, which represents a perturbation 
 
 ```
 #!cmd
-./idability demo2.dat --codes demo1.codes.txt
+./idability.py demo2.dat --codes demo1.codes.txt
 ```
 
 Produces a file called ``demo2.demo1.hits.txt``. The first few lines of this file look like:
@@ -137,5 +137,25 @@ The results are less than stellar due to the prioritization of minimal (unstable
 
 The results are much better: the majority of individuals' visit2 samples still match their visit1 codes, and spurious matches are rare.
 
-##**Basic Demo**##
+##**Advanced Configuration**##
+
+The ``--meta_mode`` parameter used in the Microbial Community Demo above encapsulates a few advanced parameter settings to the ``idability.py`` program. These include:
+
+* A novel feature prioritization scheme (abundance gap sorting)
+* More stringent definitions of feature presence and absense
+* A minimal code size
+* Additional methods to exclude redundant features
+
+These settings can be individually fine-tuned for user-specific applications. Consult the program's help menu to learn more about them:
+
+```
+#!cmd
+./idability.py -h
+```
+
+
+
+
+
+
 
