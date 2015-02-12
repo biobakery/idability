@@ -40,7 +40,7 @@ The repository contains a demo to illustrate using the software (similar in spir
 
 ```
 #!cmd
-$ idability demo1.pcl
+$ ./idability.py demo1.pcl
 ```
 
 This produces a codes file called ``demo1.codes.txt``. The first few lines of this file look like:
@@ -58,7 +58,7 @@ This indicates, for example, that the set of features {*F02*, *F13*, *F14*} were
 
 ```
 #!cmd
-$ idability demo1.pcl --codes demo1.codes.txt
+$ ./idability.py demo1.pcl --codes demo1.codes.txt
 ```
 
 This produces a file called ``demo1.demo1.hits.txt``. The general form of the "hits" file is ``INPUT_TABLE.CODES_FILE.hits.txt`` (this can be configured using the program's ``-o, --output`` flag). The first few lines of the hits file look like:
