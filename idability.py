@@ -5,7 +5,9 @@ idability.py
 ============
 Please type "./idability.py -h" for usage help
 
-Authors: Eric A. Franzosa, Curtis Huttenhower
+Authors:
+  Eric A. Franzosa (franzosa@hsph.harvard.edu)
+  Curtis Huttenhower (chuttenh@hsph.harvard.edu)
 
 Copyright (c) 2015 Harvard T. H. Chan School of Public Health
 
