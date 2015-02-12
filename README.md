@@ -23,11 +23,16 @@ A "code" is a set of features that uniquely identify a given subject, in the sen
 
 ##**Prerequisites**##
 
-``idability.py`` requires python 2.7 or higher and uses the argparse and csv modules.
+``idability.py`` requires python 2.7 or higher and uses the ``argparse`` and ``csv`` modules.
 
 ##**Installation**##
 
-Clone the repository via the following command ``$ hg clone https://bitbucket.org/biobakery/idability``
+Clone the repository via the following command:
+
+```
+#!cmd
+$ hg clone https://bitbucket.org/biobakery/idability
+```
 
 ##**Simple Demo with Minimal Codes**##
 
