@@ -49,25 +49,26 @@ BASIC OPERATION:
   When the program is given a table, it will attempt to construct 
   a unique set of features for each subject:
 
-  $ ./idability.py time1_table.pcl
+  $ ./idability.py demo1.pcl
 
   When given a table and a set of codes, the program will report 
   which subjects are hit by which codes:
 
-  $ ./idability.py time2_table.pcl --codes time1_codes.txt
+  $ ./idability.py demo2.pcl --codes demo1.codes.txt
 
   Without setting any additional arguments, the code construction
   process will be naive: only presence/absence information is
   considered and minimal codes are prioritized.
 
-  Setting '--paper_mode [relab/rpkm]' will configure all settings
-  to behave like those used for the paper. For example,
+  Setting '--meta_mode [relab/rpkm]' will configure all settings
+  to behave optimally for metagenomics features
+  (measured in relative abundance [relab] or RPKM units)
 
-  $ ./idability.py table.pcl --paper_mode rpkm
+  $ ./idability.py stool-markers-visit1.pcl --meta_mode rpkm
 
   is equivalent to:
 
-  $ ./idability.py table.pcl -s 0.8 -m 7 -d 5 -n 0.05 -r abundance_gap
+  $ ./idability.py stool-markers-visit1.pcl -s 0.8 -m 7 -d 5 -n 0.05 -r abundance_gap
 
   Parameters can be fine-tuned for user-specific applications.
 
@@ -169,13 +170,14 @@ def funcGetArgs ():
         """,
     )
     parser.add_argument( 
-        "-p", "--paper_mode",
+        "-e", "--meta_mode",
         type=str,
         choices=["off", "relab", "rpkm"],
         default="off",
         help="""
-        Automatically set all variables to those used in the paper.
-        Overrides all defaults, which otherwise give naive codes.
+        Automatically optimize all variables for working with metagenomic codes.
+        If working with relative abundance data, select the "relab" mode.
+        If working with reads per kilobbase per million reads (RPKM) data, select the "rpkm" mode.
         """,
     )
 
@@ -419,8 +421,8 @@ def main ( ):
     output_path = args.output
 
     # overrides
-    if args.paper_mode != "off":
-        choice = args.paper_mode
+    if args.meta_mode != "off":
+        choice = args.meta_mode
         abund_detect = 5.0 if choice == "rpkm" else 0.001
         abund_detect = abund_detect / 10.0 if args.codes is not None else abund_detect
         abund_nondetect = abund_detect / 100.0

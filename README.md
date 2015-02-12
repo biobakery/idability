@@ -27,7 +27,7 @@ The repository contains a demo to illustrate using the software (similar in spir
 
 ```
 #!cmd
-./idability demo1.dat
+./idability demo1.pcl
 ```
 
 This produces a codes file called ``demo1.codes.txt``. The first few lines of this file look like:
@@ -41,11 +41,11 @@ S03     F08     F13
 ...
 ```
 
-This indicates, for example, that the set of features {*F02*, *F13*, *F14*} were a unique code for subject *S01*. You can verify this by inspecting the input file, ``demo1.dat``. If ``idability.py`` is passed a set of codes in addition to a table, it will apply the codes to the table and report which codes were hit:
+This indicates, for example, that the set of features {*F02*, *F13*, *F14*} were a unique code for subject *S01*. You can verify this by inspecting the input file, ``demo1.pcl``. If ``idability.py`` is passed a set of codes in addition to a table, it will apply the codes to the table and report which codes were hit:
 
 ```
 #!cmd
-./idability demo1.dat --codes demo1.codes.txt
+./idability demo1.pcl --codes demo1.codes.txt
 ```
 
 This produces a file called ``demo1.demo1.hits.txt``. The general form of the "hits" file is ``INPUT_TABLE.CODES_FILE.hits.txt`` (this can be configured using the program's ``-o, --output`` flag). The first few lines of the hits file look like:
@@ -63,13 +63,13 @@ S03     matches S03
 ...
 ```
 
-The first five lines (beginning with ``#``) represent a confusion matrix: they summarize which codes matched the correct subjects (true positives, TPs), which codes failed to match the correct subject (false negatives, FNs), and which codes spuriously matched the wrong subjects (false positives, FPs). Combinations of these categories are allowed. The "NA" category indicates the presence of a "null code" -- in this case, three of the subjects from ``demo1.dat`` did not have a unique code (their features were a subset of some other subject's features).
+The first five lines (beginning with ``#``) represent a confusion matrix: they summarize which codes matched the correct subjects (true positives, TPs), which codes failed to match the correct subject (false negatives, FNs), and which codes spuriously matched the wrong subjects (false positives, FPs). Combinations of these categories are allowed. The "NA" category indicates the presence of a "null code" -- in this case, three of the subjects from ``demo1.pcl`` did not have a unique code (their features were a subset of some other subject's features).
 
-The demo contains a second file, ``demo2.dat``, which represents a perturbation of the original table. Running the following command:
+The demo contains a second file, ``demo2.pcl``, which represents a perturbation of the original table. Running the following command:
 
 ```
 #!cmd
-./idability.py demo2.dat --codes demo1.codes.txt
+./idability.py demo2.pcl --codes demo1.codes.txt
 ```
 
 Produces a file called ``demo2.demo1.hits.txt``. The first few lines of this file look like:
@@ -97,16 +97,16 @@ To begin, unzip the two data files, which contain marker measurements for a set 
 
 ```
 #!cmd
-./gunzip stool-markers-visit1.dat.gz 
-./gunzip stool-markers-visit2.dat.gz 
+./gunzip stool-markers-visit1.pcl.gz 
+./gunzip stool-markers-visit2.pcl.gz 
 ```
 
 Try running the default code construction process used above on the visit1 file, and then applying the visit1 codes to the visit2 table:
 
 ```
 #!cmd
-./idability.py stool-markers-visit1.dat
-./idability.py stool-markers-visit2.dat --codes stool-markers-visit1.codes.txt
+./idability.py stool-markers-visit1.pcl
+./idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt
 ```
 
 This yields:
@@ -125,8 +125,8 @@ The results are less than stellar due to the prioritization of minimal (unstable
 
 ```
 #!cmd
-./idability.py stool-markers-visit1.dat --meta_mode rpkm
-./idability.py stool-markers-visit2.dat --codes stool-markers-visit1.codes.txt --meta_mode rpkm
+./idability.py stool-markers-visit1.pcl --meta_mode rpkm
+./idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt --meta_mode rpkm
 ```
 
 ```
