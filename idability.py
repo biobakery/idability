@@ -1,5 +1,33 @@
 #! /usr/bin/env python
 
+"""
+idability.py
+============
+Please type "./idability.py -h" for usage help
+
+Authors: Eric A. Franzosa, Curtis Huttenhower
+
+Copyright (c) 2015 Harvard T. H. Chan School of Public Health
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
+
 import os, sys, argparse, csv
 
 # ---------------------------------------------------------------
@@ -19,12 +47,12 @@ BASIC OPERATION:
   When the program is given a table, it will attempt to construct 
   a unique set of features for each subject:
 
-  $ python idability.py time1_table.pcl
+  $ ./idability.py time1_table.pcl
 
   When given a table and a set of codes, the program will report 
   which subjects are hit by which codes:
 
-  $ python idability.py time2_table.pcl --codes time1_codes.txt
+  $ ./idability.py time2_table.pcl --codes time1_codes.txt
 
   Without setting any additional arguments, the code construction
   process will be naive: only presence/absence information is
@@ -33,11 +61,11 @@ BASIC OPERATION:
   Setting '--paper_mode [relab/rpkm]' will configure all settings
   to behave like those used for the paper. For example,
 
-  $ python idability.py table.pcl --paper_mode rpkm
+  $ ./idability.py table.pcl --paper_mode rpkm
 
   is equivalent to:
 
-  $ python idability.py table.pcl -s 0.8 -m 7 -d 5 -n 0.05 -r abundance_gap
+  $ ./idability.py table.pcl -s 0.8 -m 7 -d 5 -n 0.05 -r abundance_gap
 
   Parameters can be fine-tuned for user-specific applications.
 
@@ -65,78 +93,88 @@ def funcGetArgs ():
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    parser.add_argument( 'table',
-                         type=str,
-                         help="""
-                         Tab-delimited table file to encode/decode.
-                         PCL format: rows are features, cols are samples, both have headers
-                         """,
+    parser.add_argument( 
+        'table',
+        type=str,
+        help="""
+        Tab-delimited table file to encode/decode.
+        PCL format: rows are features, cols are samples, both have headers
+        """,
     )
-    parser.add_argument( "-c", '--codes',
-                         type=str,
-                         help="""
-                         Codes file produced in an earlier run.
-                         Specifying this option will compare codes to input table.
-                         """,
+    parser.add_argument( 
+        "-c", '--codes',
+        type=str,
+        help="""
+        Codes file produced in an earlier run.
+        Specifying this option will compare codes to input table.
+        """,
     )
-    parser.add_argument( "-j", '--jaccard_similarity_cutoff',  
-                         type=float,
-                         help="""
-                         If set, an encoded feature will 'knock out' similar features
-                         at the specified threshold (Jaccard score in [0-1]).
-                         """,
+    parser.add_argument( 
+        "-j", '--jaccard_similarity_cutoff',  
+        type=float,
+        help="""
+        If set, an encoded feature will 'knock out' similar features
+        at the specified threshold (Jaccard score in [0-1]).
+        """,
     )
-    parser.add_argument( "-m", '--min_code_size',
-                         type=int,
-                         default=1,
-                         help="""If set, codes will continue to be lengthened beyond
-                         the point of uniqueness. Limits spurious hits in time-varying data.
-                         """,
+    parser.add_argument( 
+        "-m", '--min_code_size',
+        type=int,
+        default=1,
+        help="""
+        If set, codes will continue to be lengthened beyond
+        the point of uniqueness. Limits spurious hits in time-varying data.
+        """,
     )
-    parser.add_argument( "-d", '--abund_detect',
-                         type=float,
-                         default=c_epsilon,
-                         help="""
-                         Features with values above this are scored as confidently present.
-                         When running in encode mode, this restricts the features that can be added to a code.
-                         When running in decode mode, this restricts the features that can be hit by a code.
-                         """,
+    parser.add_argument( 
+        "-d", '--abund_detect',
+        type=float,
+        default=c_epsilon,
+        help="""
+        Features with values above this are scored as confidently present.
+        When running in encode mode, this restricts the features that can be added to a code.
+        When running in decode mode, this restricts the features that can be hit by a code.
+        """,
     )
-    parser.add_argument( "-n", '--abund_nondetect',        
-                         type=float,
-                         default=c_epsilon,
-                         help="""
-                         Features with values below this are scored as confidently absent.
-                         Only applied to encode mode. A subject with a feature below this threshold
-                         is considered to be 'missing' the feature for hitting set purposes.
-                         """,
+    parser.add_argument( 
+        "-n", '--abund_nondetect',        
+        type=float,
+        default=c_epsilon,
+        help="""
+        Features with values below this are scored as confidently absent.
+        Only applied to encode mode. A subject with a feature below this threshold
+        is considered to be 'missing' the feature for hitting set purposes.
+        """,
     )
-    parser.add_argument( "-r", "--ranking",
-                         type=str,
-                         default="rarity",
-                         choices=["rarity", "abundance_gap"],
-                         help="""
-                         The method by which an individual's features should be prioritized when
-                         building codes. The default, rarity, prioritizess-less prevalent features.
-                         The alternative method, abundance_gap, prioritizes features with a large 
-                         abundance gap between the individual's value and the next highest value.
-                         """,
+    parser.add_argument( 
+        "-r", "--ranking",
+        type=str,
+        default="rarity",
+        choices=["rarity", "abundance_gap"],
+        help="""
+        The method by which an individual's features should be prioritized when
+        building codes. The default, rarity, prioritizess-less prevalent features.
+        The alternative method, abundance_gap, prioritizes features with a large 
+        abundance gap between the individual's value and the next highest value.
+        """,
     )
-    parser.add_argument( "-o", "--output",
-                         type=str,
-                         help="""
-                         Name for the output file (codes or confusion matrix, depending on mode).
-                         If not supplied, a default will be constructed from the input file names.
-                         """,
+    parser.add_argument( 
+        "-o", "--output",
+        type=str,
+        help="""
+        Name for the output file (codes or confusion matrix, depending on mode).
+        If not supplied, a default will be constructed from the input file names.
+        """,
     )
-    parser.add_argument( "-p", "--paper_mode",
-                         type=str,
-                         choices=["relab", "rpkm"],
-                         default="rpkm",
-                         help="""
-                         Automatically set all variables to those used in the paper.
-                         Overrides all defaults, which otherwise give naive codes.
-                         """,
+    parser.add_argument( 
+        "-p", "--paper_mode",
+        type=str,
+        choices=["off", "relab", "rpkm"],
+        default="off",
+        help="""
+        Automatically set all variables to those used in the paper.
+        Overrides all defaults, which otherwise give naive codes.
+        """,
     )
 
     args = parser.parse_args()
@@ -379,7 +417,7 @@ def main ( ):
     output_path = args.output
 
     # overrides
-    if args.paper_mode is not None:
+    if args.paper_mode != "off":
         choice = args.paper_mode
         abund_detect = 5.0 if choice == "rpkm" else 0.001
         abund_detect = abund_detect / 10.0 if args.codes is not None else abund_detect
