@@ -6,16 +6,20 @@ AUTHORS: Eric A. Franzosa (franzosa@hsph.harvard.edu), Curtis Huttenhower (chutt
 
 ##**Description**##
 
-idability.py processes tabular data to build and evaluate hitting-set-based codes. Table rows represent features, and table columns represent "samples" or "subjects". The entry (F, S) represents subject S's value for feature F. In their simplest form, values are 1s and 0s, representing the presence or absence (respectively) of a feature within a given subject. In this simple example:
+``idability.py`` processes tabular data to build and evaluate hitting-set-based codes. Table rows represent features, and table columns represent "samples" or "subjects". The entry (*F*, *S*) represents subject *S*'s value for feature *F*. In their simplest form, values are 1s and 0s, representing the presence or absence (respectively) of a feature within a given subject. In this simple example:
 
 ```
 #!cmd
-   S1 S2
-F1  0  1
-F2  1  0
+   S1 S2 S3
+F1  0  1  1
+F2  1  0  1
+F3  1  1  0
+F3  1  1  1
 ```
 
-Subject *S1* has feature *F2* only, and subject *S2* has feature *F1* only. A "code" is a set of features that uniquely identify a given subject. Features can be prioritized for inclusion in a code in a number of ways. In the simplest method, subject S's code is built from the rarest features in the population (more specifically, the code is grown iteratively by adding the rarest feature among non-S subjects that are not already excluded by a feature in the code). Under this formulation, the code is of minimal size, and its construction is analogous to the classical [**Hitting-Set Problem**](http://en.wikipedia.org/wiki/Set_cover_problem#Hitting_set_formulation). In the simple example above, *F2* is a code for *S1* and *F1* is a code for *S2*.
+Subject *S1* has features *F2*, *F3*, and *F4* but is missing feature *F1*. 
+
+A "code" is a set of features that uniquely identify a given subject, in the sense that the features collectively distinguish that subject from the background population. Put another way, the subject's code features are never observed together in another subject. Features can be prioritized for inclusion in a code in a number of ways. In the simplest method, subject *S*'s code is built from the rarest features in the population (more specifically, the code is grown iteratively by adding the rarest feature among non-*S* subjects that are not already excluded by a feature in the code). Under this formulation, the code is of minimal size, and its construction is analogous to the classical [**Hitting-Set Problem**](http://en.wikipedia.org/wiki/Set_cover_problem#Hitting_set_formulation). In the simple example above, {*F2*, *F3*} is a minimal code for *S1*.
 
 ##**Basic Demo**##
 
@@ -152,10 +156,3 @@ These settings can be individually fine-tuned for user-specific applications. Co
 #!cmd
 ./idability.py -h
 ```
-
-
-
-
-
-
-
