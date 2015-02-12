@@ -2,9 +2,7 @@
 
 #**idability.py: build and evaluating hitting-set-based codes**#
 
-AUTHORS: 
-* Eric A. Franzosa (franzosa@hsph.harvard.edu)
-* Curtis Huttenhower (chuttenh@hsph.harvard.edu)
+**Authors**: Eric A. Franzosa (franzosa@hsph.harvard.edu) & Curtis Huttenhower (chuttenh@hsph.harvard.edu)
 
 ##**Description**##
 
