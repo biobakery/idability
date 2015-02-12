@@ -114,16 +114,16 @@ To begin, unzip the two data files, which contain marker measurements for a set 
 
 ```
 #!cmd
-$ gunzip stool-markers-visit1.pcl.gz 
-$ gunzip stool-markers-visit2.pcl.gz 
+$ gunzip markers-stool-visit1.pcl.gz 
+$ gunzip markers-stool-visit2.pcl.gz 
 ```
 
 Try running the default code construction process used above on the visit1 file, and then applying the visit1 codes to the visit2 table:
 
 ```
 #!cmd
-$ ./idability.py stool-markers-visit1.pcl
-$ ./idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt
+$ ./idability.py markers-stool-visit1.pcl
+$ ./idability.py markers-stool-visit2.pcl --codes markers-stool-visit1.codes.txt
 ```
 
 This yields:
@@ -142,8 +142,8 @@ The results are less than stellar due to the prioritization of minimal (unstable
 
 ```
 #!cmd
-$ ./idability.py stool-markers-visit1.pcl --meta_mode rpkm
-$ ./idability.py stool-markers-visit2.pcl --codes stool-markers-visit1.codes.txt --meta_mode rpkm
+$ ./idability.py markers-stool-visit1.pcl --meta_mode rpkm
+$ ./idability.py markers-stool-visit2.pcl --codes markers-stool-visit1.codes.txt --meta_mode rpkm
 ```
 
 ```
