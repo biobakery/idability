@@ -21,6 +21,14 @@ Subject *S1* has features *F2*, *F3*, and *F4* but is missing feature *F1*.
 
 A "code" is a set of features that uniquely identify a given subject, in the sense that the features collectively distinguish that subject from the background population. Put another way, the subject's code features are never observed together in another subject. Features can be prioritized for inclusion in a code in a number of ways. In the simplest method, subject *S*'s code is built from the rarest features in the population (more specifically, the code is grown iteratively by adding the rarest feature among non-*S* subjects that are not already excluded by a feature in the code). Under this formulation, the code is of minimal size, and its construction is analogous to the classical [**Hitting-Set Problem**](http://en.wikipedia.org/wiki/Set_cover_problem#Hitting_set_formulation). In the simple example above, {*F2*, *F3*} is a minimal code for *S1*.
 
+##**Prerequisites**##
+
+``idability.py`` requires python 2.7 or higher and uses the argparse and csv modules.
+
+##**Installation**##
+
+Clone the repository via the following command ``$ hg clone https://bitbucket.org/biobakery/idability``
+
 ##**Simple Demo with Minimal Codes**##
 
 The repository contains a demo to illustrate using the software (similar in spirit, but more advanced, than the minimal example above). To run the demo, execute:
