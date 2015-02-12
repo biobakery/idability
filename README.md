@@ -177,7 +177,7 @@ The following datasets were used in the publication and are available for downlo
 * ``otus-anterior_nares-visit1.pcl``
 * ``otus-anterior_nares-visit2.pcl``
 
-(Along with similar pairings for 17 other body sites). The table formats are as described above (tab-delimitted with feature rows and subject columns). All data are derived from raw sequencing reads and analysis conducted during the [Human Microbiome Project (HMP)](http://www.hmpdacc.org/). Additional details of the features and datasets are available in the publication.
+(Along with similar pairings for 17 other body sites). The table formats are as described above (tab-delimitted with feature rows and subject columns). All data are derived from raw sequencing reads and analysis conducted during the [Human Microbiome Project (HMP)](http://www.hmpdacc.org/). Additional details of the features and datasets are available in the publication. Subjects are identified by HMP-issued ``RANDSID`` identifiers (column headers). Tables have been pre-processed to ensure that each subject appears in both tables with the same identifier.
 
 * [Download OTU paired tables](https://bitbucket.org/biobakery/idability/downloads/otus-tables.tar.gz)
 * [Download MetaPhlAn species paired tables](https://bitbucket.org/biobakery/idability/downloads/species-tables.tar.gz)
