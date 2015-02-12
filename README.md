@@ -37,14 +37,14 @@ S03     F08     F13
 ...
 ```
 
-This indicates, for example, that the set of features {*F02*, *F13*, *F14*} were a unique code for subject *S01*. You can verify this by inspecting the input file, ``demo1.dat``. If ``idability.py`` is based a set of codes in addition to a table, it will apply the codes to the table and report which codes were hit:
+This indicates, for example, that the set of features {*F02*, *F13*, *F14*} were a unique code for subject *S01*. You can verify this by inspecting the input file, ``demo1.dat``. If ``idability.py`` is passed a set of codes in addition to a table, it will apply the codes to the table and report which codes were hit:
 
 ```
 #!cmd
 ./idability demo1.dat --codes demo1.codes.txt
 ```
 
-This produces a file called ``demo1.demo1.hits.txt``. The general form of the "hits" file is ``INPUT_TABLE.CODES_FILE.hits.txt" (this can be configured using the program's ``-o, --output`` flag). The first few lines of the hits file look like:
+This produces a file called ``demo1.demo1.hits.txt``. The general form of the "hits" file is ``INPUT_TABLE.CODES_FILE.hits.txt`` (this can be configured using the program's ``-o, --output`` flag). The first few lines of the hits file look like:
 
 ```
 #!cmd
@@ -84,4 +84,58 @@ S03     matches S03     S05     S06
 ```
 
 Note that the results now contain instances of FNs and FPs in addition to TPs. For example, *S02* has been perturbed and its original code no longer matches the features detected in S02 in the second dataset (a FN). *S03*'s original code continue to match *S03*, but now two other subjects (*S05* and *S06*) also match this code (FPs).
+
+##**Microbial Community Demo**##
+
+``idability.py`` was developed to explore individual-specific adaptation of human microbiomes. Specifically, we were interested to know if body sites with an individual contain a collection of microbial taxa or genes that uniquely distinquish that individual from the population (as determined from metagenomic sequencing data). This is equivalent to the hitting-set based code construction process described above. However, our investigation revealed that minimal metagenomic codes were unstable over time. Hence, we adapted the classical greedy approach to minimal hitting-set construction to instead prioritize identification of stable metagenomic codes. The repository contains a demo based on microbiome marker genes sampled from individuals involved in the [Human Microbiome Project](http://www.hmpdacc.org/) as surveyed by the [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) software package.
+
+To begin, unzip the two data files, while contain marker measurements for a set of 50 individuals' gut microbiomes (as represented from stool samples) sampled ~6 months apart.
+
+```
+#!cmd
+./gunzip stool-markers-visit1.dat.gz 
+./gunzip stool-markers-visit2.dat.gz 
+```
+
+Try running the default code construction process used above on the visit1 file, and then applying the visit1 codes to the visit2 table:
+
+```
+#!cmd
+./idability.py stool-markers-visit1.dat
+./idability.py stool-markers-visit2.dat --codes stool-markers-visit1.codes.txt
+```
+
+This yields:
+
+```
+#!cmd
+# 1|TP: 4
+# 2|TP+FP: 1
+# 3|FN+FP: 22
+# 4|FN: 23
+# 5|NA: 0
+...
+```
+
+The results are less than stellar due to the prioritization of minimal (unstable) codes. Repeat this process by running the program in "meta_mode", which fine-tunes the code construction process to identify sets of features that are more likely to be stable over time:
+
+```
+#!cmd
+./idability.py stool-markers-visit1.dat --meta_mode rpkm
+./idability.py stool-markers-visit2.dat --codes stool-markers-visit1.codes.txt --meta_mode rpkm
+```
+
+```
+#!cmd
+# 1|TP: 43
+# 2|TP+FP: 0
+# 3|FN+FP: 1
+# 4|FN: 6
+# 5|NA: 0
+...
+```
+
+The results are much better: the majority of individuals' visit2 samples still match their visit1 codes, and spurious matches are rare.
+
+##**Basic Demo**##
 
