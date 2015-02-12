@@ -85,7 +85,7 @@ c_codes_extension = "codes.txt"
 c_hits_extension = "hits.txt"
 
 # ---------------------------------------------------------------
-# utilities
+# arguments
 # ---------------------------------------------------------------
 
 def funcGetArgs ():
@@ -184,13 +184,17 @@ def funcGetArgs ():
     args = parser.parse_args()
     return args
 
+# ---------------------------------------------------------------
+# utilities and file i/o
+# ---------------------------------------------------------------
+
 def funcPathToName ( path ):
     return os.path.split( path )[1].split( "." )[0]
 
 def funcLoadSFV ( path, cutoff ):
     """ 
-    Loads a table file to a nested dict (sfv: sample->feature->value)
-    Values below cutoff are ignored to save space
+    loads a table file to a nested dict (sfv: sample->feature->value)
+    values below cutoff are ignored to save space
     """
     sfv = {}
     with open( path ) as fh:
@@ -222,7 +226,7 @@ def funcReduceSFV ( sfv, cutoff, greater=True ):
 
 def funcFlipSFV ( sfv ):
     """
-    Make a fsv object, i.e. feature->sample->value map
+    make a fsv object, i.e. feature->sample->value map
     """
     fsv = {}
     for subject, fdict in sfv.items():
@@ -255,6 +259,9 @@ def funcCheckHits ( sample_hits ):
     return counts
 
 def funcWriteCodes ( sample_codes, path ):
+    """
+    write code sets to a text file
+    """
     with open( path, "w" ) as fh:
         print >>fh, "#SAMPLE\tCODE"
         for sample in sorted( sample_codes.keys() ):
@@ -265,6 +272,9 @@ def funcWriteCodes ( sample_codes, path ):
     print >>sys.stderr, "wrote codes to:", path
 
 def funcReadCodes ( path ):
+    """
+    read back in the codes written by funcWriteCodes
+    """
     sample_codes = {}
     with open( path ) as fh:
         fh.readline() # headers
@@ -275,6 +285,9 @@ def funcReadCodes ( path ):
     return sample_codes
 
 def funcWriteHits ( subject_hits, path ):
+    """
+    write hit results and summary to a text file
+    """
     # compute confusion line
     confusion = funcCheckHits( subject_hits )
     with open( path, "w" ) as fh:
@@ -333,7 +346,9 @@ def funcRankRarity( sfv, fsv, abund_nondetect ):
 
 def funcMakeOneCode ( sample, ranked_features, sfv_sets, fsv_sets, \
                       similarity_cutoff, min_code_size ):
-    """ execute the idabilty algorithm for one sample """
+    """ 
+    execute the idabilty algorithm for one sample 
+    """
     features = ranked_features[:]
     other_samples = {sample2 for sample2 in sfv_sets if sample2 != sample}
     code = []
@@ -357,7 +372,9 @@ def funcMakeOneCode ( sample, ranked_features, sfv_sets, fsv_sets, \
     return code if len( other_samples ) == 0 else None
 
 def funcEncode ( sfv, abund_detect, abund_nondetect, similarity_cutoff, min_code_size, ranking="rarity" ):
-    """    run idability algorithm on all samples """
+    """    
+    run idability algorithm on all samples 
+    """
     # flip sfv to fsv
     fsv = funcFlipSFV( sfv )
     # rebuild sfv with only features above abund threshold
@@ -387,7 +404,9 @@ def funcEncode ( sfv, abund_detect, abund_nondetect, similarity_cutoff, min_code
 # ---------------------------------------------------------------------------
 
 def funcCheckOneCode ( code, sfv_sets ):
-    """ determines which subjects hit a given code (as set) """
+    """ 
+    compare a single code to a population
+    """
     code_set = set( code )
     hits = []
     for sample, features_set in sfv_sets.items():
@@ -396,7 +415,9 @@ def funcCheckOneCode ( code, sfv_sets ):
     return hits
 
 def funcDecode ( sfv, sample_codes, abund_detect ):
-    """    """
+    """
+    compare all codes to a population
+    """
     sfv_sets = funcSetForm( funcReduceSFV( sfv, abund_detect ) )
     sample_hits = {}
     for sample, code in sample_codes.items():
@@ -409,6 +430,8 @@ def funcDecode ( sfv, sample_codes, abund_detect ):
 
 def main ( ):
     
+    """ """
+
     # process arguments
     args = funcGetArgs()
     table_path = args.table
@@ -424,8 +447,9 @@ def main ( ):
     if args.meta_mode != "off":
         choice = args.meta_mode
         abund_detect = 5.0 if choice == "rpkm" else 0.001
-        abund_detect = abund_detect / 10.0 if args.codes is not None else abund_detect
         abund_nondetect = abund_detect / 100.0
+        # relax detection parameter in decoding step
+        abund_detect = abund_detect / 10.0 if args.codes is not None else abund_detect
         similarity_cutoff = 0.8
         min_code_size = 7
         ranking = "abundance_gap"
