@@ -41,18 +41,18 @@ DESCRIPTION:
 
   This is a python program for generating and evaluating 
   hitting-set based codes. The program operates on tabular data 
-  organized with subjects as columns and features as rows.
+  organized with samples  as columns and features as rows.
   (Also known as PCL format.)
 
 BASIC OPERATION:
 
   When the program is given a table, it will attempt to construct 
-  a unique set of features for each subject:
+  a unique set of features for each sample:
 
   $ ./idability.py demo1.pcl
 
   When given a table and a set of codes, the program will report 
-  which subjects are hit by which codes:
+  which samples are hit by which codes:
 
   $ ./idability.py demo2.pcl --codes demo1.codes.txt
 
@@ -101,7 +101,7 @@ def funcGetArgs ():
         type=str,
         help="""
         Tab-delimited table file to encode/decode.
-        PCL format: rows are features, cols are samples, both have headers
+        PCL format: rows are features, cols are samples (or subjects), both have headers
         """,
     )
     parser.add_argument( 
@@ -145,7 +145,7 @@ def funcGetArgs ():
         default=c_epsilon,
         help="""
         Features with values below this are scored as confidently absent.
-        Only applied to encode mode. A subject with a feature below this threshold
+        Only applied to encode mode. A sample with a feature below this threshold
         is considered to be 'missing' the feature for hitting set purposes.
         """,
     )
@@ -177,7 +177,7 @@ def funcGetArgs ():
         help="""
         Automatically optimize all variables for working with metagenomic codes.
         If working with relative abundance data, select the "relab" mode.
-        If working with reads per kilobbase per million reads (RPKM) data, select the "rpkm" mode.
+        If working with reads per kilobase per million reads (RPKM) data, select the "rpkm" mode.
         """,
     )
 
@@ -215,7 +215,7 @@ def funcLoadSFV ( path, cutoff ):
 def funcReduceSFV ( sfv, cutoff, greater=True ):
     """
     rebuild sfv with only entries > cutoff
-    maintain all samples (s), even if no features in sample meet cutoff
+    maintain all samples(s), even if no features in sample meet cutoff
     """
     temp = {sample:{} for sample in sfv}
     for sample, fdict in sfv.items():
@@ -229,9 +229,9 @@ def funcFlipSFV ( sfv ):
     make a fsv object, i.e. feature->sample->value map
     """
     fsv = {}
-    for subject, fdict in sfv.items():
+    for sample, fdict in sfv.items():
         for feature, value in fdict.items():
-            fsv.setdefault( feature, {} )[subject] = value
+            fsv.setdefault( feature, {} )[sample] = value
     return fsv
 
 def funcSetForm ( nested_dict ):
@@ -242,15 +242,15 @@ def funcSetForm ( nested_dict ):
 
 def funcCheckHits ( sample_hits ):
     """
-    produces confusion results by comparing keys to lists of hit subjects
+    produces confusion results by comparing keys to lists of hit samples
     """
     counts = {k:0 for k in "1|TP 3|FN+FP 2|TP+FP 4|FN 5|NA".split()}
-    for subject, hits in sample_hits.items():
+    for sample, hits in sample_hits.items():
         if hits is None:
             counts["5|NA"] += 1
         else:
-            tp_hit = True if subject in hits else False
-            fp_hit = True if len([subject2 for subject2 in hits if subject2 != subject]) > 0 else False
+            tp_hit = True if sample in hits else False
+            fp_hit = True if len([sample2 for sample2 in hits if sample2 != sample]) > 0 else False
             if tp_hit:
                 key = "2|TP+FP" if fp_hit else "1|TP"
             else:
@@ -284,19 +284,19 @@ def funcReadCodes ( path ):
             sample_codes[sample] = code if c_na not in code else None
     return sample_codes
 
-def funcWriteHits ( subject_hits, path ):
+def funcWriteHits ( sample_hits, path ):
     """
     write hit results and summary to a text file
     """
     # compute confusion line
-    confusion = funcCheckHits( subject_hits )
+    confusion = funcCheckHits( sample_hits )
     with open( path, "w" ) as fh:
         for confusion_class in sorted( confusion ):
             count = confusion[confusion_class]
             print >>fh, "# %s: %d" % ( confusion_class, count )
-        for subject in sorted( subject_hits ):
-            hits = subject_hits[subject]
-            items = [subject]
+        for sample in sorted( sample_hits ):
+            hits = sample_hits[sample]
+            items = [sample]
             if hits is None:
                 items += ["no_code", c_na]
             else:
@@ -322,14 +322,14 @@ def funcRankAbundGap( sfv, fsv, abund_nondetect ):
     abundance gap sorting sfv features
     """
     sorted_features = {}
-    for subject, fdict in sfv.items():
+    for sample, fdict in sfv.items():
         gaps = {}
         for feature, focal_value in fdict.items():
             lesser_values = [abund_nondetect]
             lesser_values += [v for k, v in fsv[feature].items() \
-                              if v <= focal_value and k != subject]
+                              if v <= focal_value and k != sample]
             gaps[feature] = focal_value - max( lesser_values )
-        sorted_features[subject] = sorted( 
+        sorted_features[sample] = sorted( 
             gaps.keys(), key=lambda feature: gaps[feature], )
     return sorted_features
 
@@ -338,8 +338,8 @@ def funcRankRarity( sfv, fsv, abund_nondetect ):
     rarity sorting of sfv features
     """
     sorted_features = {}
-    for subject, fdict in sfv.items():
-        sorted_features[subject] = sorted( 
+    for sample, fdict in sfv.items():
+        sorted_features[sample] = sorted( 
             fdict.keys(), key=lambda feature: len( fsv[feature] ), 
             reverse=True, )
     return sorted_features
