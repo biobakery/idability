@@ -162,7 +162,11 @@ The `--meta_mode` parameter used in the Microbial Community Demo above encapsula
 * A minimum code size threshold
 * Methods to exclude redundant features
 
-These settings can be individually fine-tuned for user-specific applications. Consult the program's help menu to learn more about them (`$ ./idability.py -h`).
+These settings can be individually fine-tuned for user-specific applications. Consult the program's help menu to learn more about them:
+
+```
+$ ./idability.py -h`
+```
 
 ##**Preprocessed Metagenomics Datasets**
 
