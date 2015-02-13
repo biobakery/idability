@@ -165,7 +165,7 @@ The `--meta_mode` parameter used in the Microbial Community Demo above encapsula
 These settings can be individually fine-tuned for user-specific applications. Consult the program's help menu to learn more about them:
 
 ```
-$ ./idability.py -h`
+$ ./idability.py -h
 ```
 
 ##**Preprocessed Metagenomics Datasets**
