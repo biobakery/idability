@@ -106,7 +106,7 @@ Note that the results now contain instances of FNs and FPs in addition to TPs. F
 
 ##**Metagenomic Codes Demo**
 
-`idability.py` was originally developed to explore individual-specific adaptation of human microbiomes. Specifically, we were interested to know if body sites within an individual contain a collection of microbial taxa or genes that uniquely distinquish that individual from the population. This is equivalent to the hitting-set based code construction process described above. However, our investigation revealed that minimal metagenomic codes were unstable over time. Hence, we adapted the classical greedy approach to minimal hitting-set construction to instead prioritize identification of stable metagenomic codes. The repository contains a demo based on microbial marker genes sampled from individuals involved in the [Human Microbiome Project](http://www.hmpdacc.org/) as surveyed by the [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) software package. (A *marker gene* is a gene that is consistently found in isolate genomes from a given clade [here, bacterial and archaeal species] and not found outside that clade.)
+`idability.py` was originally developed to explore individual-specific adaptation of human microbiomes. Specifically, we were interested to know if body sites within an individual contain a collection of microbial taxa or genes that uniquely distinguish that individual from the population. This is equivalent to the hitting-set based code construction process described above. However, our investigation revealed that minimal metagenomic codes were unstable over time. Hence, we adapted the classical greedy approach to minimal hitting-set construction to instead prioritize identification of stable metagenomic codes. The repository contains a demo based on microbial marker genes sampled from individuals involved in the [Human Microbiome Project](http://www.hmpdacc.org/) as surveyed by the [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) software package. (A *marker gene* is a gene that is consistently found in isolate genomes from a given clade [here, bacterial and archaeal species] and not found outside that clade.)
 
 To begin, unzip the two data files, which contain marker measurements for a set of 50 individuals' gut microbiomes (as represented from stool samples) sampled ~6 months apart.
 
@@ -158,7 +158,7 @@ The results are much better: the majority of individuals' visit2 samples still m
 The `--meta_mode` parameter used in the Microbial Community Demo above encapsulates a variety of advanced parameter settings to the `idability.py` program. These serve to increase code robustness and specificity in metagenomics applications. Settings include:
 
 * A novel feature prioritization scheme (*abundance gap sorting*)
-* More flexible definitions of feature *presence* and *absense*
+* More flexible definitions of feature *presence* and *absence*
 * A minimum code size threshold
 * Methods to exclude redundant features
 
