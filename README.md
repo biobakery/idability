@@ -19,7 +19,7 @@
 F1  0  1  1
 F2  1  0  1
 F3  1  1  0
-F3  1  1  1
+F4  1  1  1
 ```
 
 Subject *S1* has features *F2*, *F3*, and *F4* but is missing feature *F1*. 
