@@ -1,4 +1,4 @@
-#idability.py: build and evaluate hitting-set-based codes
+#**idability.py: build and evaluate hitting-set-based codes**
 
 **Authors**: 
 
@@ -10,7 +10,7 @@
 
 [TOC]
 
-##Description
+##**Description**
 
 `idability.py` is a standalone python program which processes tabular data to build and evaluate hitting-set-based codes. Table rows represent features, and table columns represent "samples" or "subjects". The entry (*F*, *S*) represents subject *S*'s value for feature *F*. In their simplest form, values are 1s and 0s, representing the presence or absence (respectively) of a feature within a given subject. In this simple example:
 
@@ -28,11 +28,11 @@ A *code* is a set of features that uniquely identify a given subject, in the sen
 
 `idability.py` has been additionally optimized to build personalized codes from microbiome data (as derived from metagenomic sequencing experiments). In this context, minimal codes are suboptimal as they tend not to be robust to temporal variation, and so an alternative feature prioritization scheme is employed. Please refer to the [Advanced Configuration](#Advanced Configuration) and [Metagenomic Codes Demo](#Metagenomic Codes Demo) sections below for further details.
 
-##Prerequisites
+##**Prerequisites**
 
 ``idability.py`` requires python 2.7+.
 
-##Installation
+##**Installation**
 
 Clone the repository via the following command:
 
@@ -42,7 +42,7 @@ $ hg clone https://bitbucket.org/biobakery/idability
 
 or [directly download the repository](https://bitbucket.org/biobakery/idability/get/default.tar.gz) as an archive and expand its contents.
 
-##Minimal Codes Demo
+##**Minimal Codes Demo**
 
 The repository contains a simple demo to illustrate basic use of the software (similar in spirit, but larger, than the minimal example above). To run the demo, execute:
 
@@ -104,7 +104,7 @@ S03     matches S03     S05     S06
 
 Note that the results now contain instances of FNs and FPs in addition to TPs. For example, *S02* has been perturbed and its original code no longer matches the features detected in *S02* in the second dataset (a FN). *S03*'s original code continues to match *S03*, but now two other subjects (*S05* and *S06*) also match this code (FPs).
 
-##Metagenomic Codes Demo
+##**Metagenomic Codes Demo**
 
 `idability.py` was originally developed to explore individual-specific adaptation of human microbiomes. Specifically, we were interested to know if body sites within an individual contain a collection of microbial taxa or genes that uniquely distinquish that individual from the population. This is equivalent to the hitting-set based code construction process described above. However, our investigation revealed that minimal metagenomic codes were unstable over time. Hence, we adapted the classical greedy approach to minimal hitting-set construction to instead prioritize identification of stable metagenomic codes. The repository contains a demo based on microbial marker genes sampled from individuals involved in the [Human Microbiome Project](http://www.hmpdacc.org/) as surveyed by the [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) software package. (A *marker gene* is a gene that is consistently found in isolate genomes from a given clade [here, bacterial and archael species] and not found outside that clade.)
 
@@ -153,7 +153,7 @@ This yields:
 
 The results are much better: the majority of individuals' visit2 samples still match their visit1 codes, and spurious matches are rare.
 
-##Advanced Configuration
+##**Advanced Configuration**
 
 The `--meta_mode` parameter used in the Microbial Community Demo above encapsulates a variety of advanced parameter settings to the `idability.py` program. These serve to increase code robustness and specificity in metagenomics applications. Settings include:
 
@@ -164,7 +164,7 @@ The `--meta_mode` parameter used in the Microbial Community Demo above encapsula
 
 These settings can be individually fine-tuned for user-specific applications. Consult the program's help menu to learn more about them (`$ ./idability.py -h`).
 
-##Preprocessed Metagenomics Datasets
+##**Preprocessed Metagenomics Datasets**
 
 The following datasets were used in the publication and are available for download here. There is one gzipped tarball for each type of metagenomic features (OTUs, species, marker genes [markers], and kilobase windows [kbwindows]). Each tarball contains pairs of files for each body site: one file is a table reflecting subjects' feature measurements at their first visit (visit1), and a second file contains values from the follow-up visit (visit2). For example, `otus-tables.tar.gz` contains:
 
@@ -178,6 +178,6 @@ The following datasets were used in the publication and are available for downlo
 * [Download MetaPhlAn marker genes paired tables](https://bitbucket.org/biobakery/idability/downloads/markers-tables.tar.gz)
 * [Download Kilobase Windows paired tables](https://bitbucket.org/biobakery/idability/downloads/kbwindows-tables.tar.gz) 
 
-##Citation
+##**Citation**
 
 If you use `idability.py` or the datasets provided above in a publication, please cite: *forthcoming*.
