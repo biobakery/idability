@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! iusr/bin/env python
 
 """
 idability.py
@@ -204,7 +204,7 @@ def funcLoadSFV ( path, cutoff ):
                 headers = row[1:]
                 sfv = {header:{} for header in headers}
             else:
-                feature, values = row[0], map( float, row[1:] )
+                feature, values = row[0], list(map( float, row[1:] ))
                 assert len( values ) == len( headers ), \
                     "row length mismatch"
                 for header, value in zip( headers, values ):
@@ -218,8 +218,8 @@ def funcReduceSFV ( sfv, cutoff, greater=True ):
     maintain all samples(s), even if no features in sample meet cutoff
     """
     temp = {sample:{} for sample in sfv}
-    for sample, fdict in sfv.items():
-        for feature, value in fdict.items():
+    for sample, fdict in list(sfv.items()):
+        for feature, value in list(fdict.items()):
             if ( greater and value >= cutoff ) or ( not greater and value < cutoff ):
                 temp[sample][feature] = value
     return temp
@@ -229,8 +229,8 @@ def funcFlipSFV ( sfv ):
     make a fsv object, i.e. feature->sample->value map
     """
     fsv = {}
-    for sample, fdict in sfv.items():
-        for feature, value in fdict.items():
+    for sample, fdict in list(sfv.items()):
+        for feature, value in list(fdict.items()):
             fsv.setdefault( feature, {} )[sample] = value
     return fsv
 
@@ -238,14 +238,14 @@ def funcSetForm ( nested_dict ):
     """ 
     reduces inner dict to key set when we're done with values
     """
-    return {k:set( v.keys() ) for k, v in nested_dict.items()}
+    return {k:set( list(v) ) for k, v in list(nested_dict.items())}
 
 def funcCheckHits ( sample_hits ):
     """
     produces confusion results by comparing keys to lists of hit samples
     """
     counts = {k:0 for k in "1|TP 3|FN+FP 2|TP+FP 4|FN 5|NA".split()}
-    for sample, hits in sample_hits.items():
+    for sample, hits in list(sample_hits.items()):
         if hits is None:
             counts["5|NA"] += 1
         else:
@@ -263,13 +263,13 @@ def funcWriteCodes ( sample_codes, path ):
     write code sets to a text file
     """
     with open( path, "w" ) as fh:
-        print >>fh, "#SAMPLE\tCODE"
-        for sample in sorted( sample_codes.keys() ):
+        fh.write("#SAMPLE\tCODE\n")
+        for sample in sorted( list(sample_codes) ):
             code = sample_codes[sample]
             items = [sample] 
             items += [c_na] if code is None else code
-            print >>fh, "\t".join( items )
-    print >>sys.stderr, "wrote codes to:", path
+            fh.write("\t".join( items )+"\n")
+    sys.stderr.write("wrote codes to:" + path + "\n")
 
 def funcReadCodes ( path ):
     """
@@ -293,7 +293,7 @@ def funcWriteHits ( sample_hits, path ):
     with open( path, "w" ) as fh:
         for confusion_class in sorted( confusion ):
             count = confusion[confusion_class]
-            print >>fh, "# %s: %d" % ( confusion_class, count )
+            fh.write("# %s: %d" % ( confusion_class, count ) + "\n")
         for sample in sorted( sample_hits ):
             hits = sample_hits[sample]
             items = [sample]
@@ -302,8 +302,8 @@ def funcWriteHits ( sample_hits, path ):
             else:
                 items += ["matches" if len( hits ) > 0 else "no_matches"]
                 items += hits
-            print >>fh, "\t".join( items )
-    print >>sys.stderr, "wrote hits to:", path
+            fh.write("\t".join( items ) + "\n")
+    sys.stderr.write("wrote hits to:" + path + "\n")
 
 # ---------------------------------------------------------------------------
 # encode part
@@ -322,15 +322,15 @@ def funcRankAbundGap( sfv, fsv, abund_nondetect ):
     abundance gap sorting sfv features
     """
     sorted_features = {}
-    for sample, fdict in sfv.items():
+    for sample, fdict in list(sfv.items()):
         gaps = {}
-        for feature, focal_value in fdict.items():
+        for feature, focal_value in list(fdict.items()):
             lesser_values = [abund_nondetect]
-            lesser_values += [v for k, v in fsv[feature].items() \
+            lesser_values += [v for k, v in list(fsv[feature].items()) \
                               if v <= focal_value and k != sample]
             gaps[feature] = focal_value - max( lesser_values )
         sorted_features[sample] = sorted( 
-            gaps.keys(), key=lambda feature: gaps[feature], )
+            list(gaps), key=lambda feature: gaps[feature], )
     return sorted_features
 
 def funcRankRarity( sfv, fsv, abund_nondetect ):
@@ -338,9 +338,9 @@ def funcRankRarity( sfv, fsv, abund_nondetect ):
     rarity sorting of sfv features
     """
     sorted_features = {}
-    for sample, fdict in sfv.items():
+    for sample, fdict in list(sfv.items()):
         sorted_features[sample] = sorted( 
-            fdict.keys(), key=lambda feature: len( fsv[feature] ), 
+            list(fdict), key=lambda feature: len( fsv[feature] ), 
             reverse=True, )
     return sorted_features
 
@@ -366,9 +366,9 @@ def funcMakeOneCode ( sample, ranked_features, sfv_sets, fsv_sets, \
             code.pop()
         # restrict remaining features to avoid similarity to best feature
         if similarity_cutoff is not None:
-            features = filter( lambda feature2: \
+            features = list(filter( lambda feature2: \
                                funcJaccard( fsv_sets[feature], fsv_sets[feature2] ) < \
-                               similarity_cutoff, features )
+                               similarity_cutoff, features ))
     return code if len( other_samples ) == 0 else None
 
 def funcEncode ( sfv, abund_detect, abund_nondetect, similarity_cutoff, min_code_size, ranking="rarity" ):
@@ -380,7 +380,7 @@ def funcEncode ( sfv, abund_detect, abund_nondetect, similarity_cutoff, min_code
     # rebuild sfv with only features above abund threshold
     sfv = funcReduceSFV( sfv, cutoff=abund_detect )
     # prioritize features
-    print >>sys.stderr, "performing requested feature ranking:", ranking
+    sys.stderr.write("performing requested feature ranking:" + ranking + "\n")
     funcRank = {"rarity":funcRankRarity, "abundance_gap":funcRankAbundGap}[ranking]
     sorted_features = funcRank( sfv, fsv, abund_nondetect )
     # simplify sfv and fsv to sets
@@ -388,7 +388,7 @@ def funcEncode ( sfv, abund_detect, abund_nondetect, similarity_cutoff, min_code
     fsv_sets = funcSetForm( fsv )
     # make codes for each sample
     sample_codes = {}
-    for i, sample in enumerate( sfv_sets.keys() ):
+    for i, sample in enumerate( list(sfv_sets) ):
         sample_codes[sample] = funcMakeOneCode( 
             sample, 
             sorted_features[sample],
@@ -409,7 +409,7 @@ def funcCheckOneCode ( code, sfv_sets ):
     """
     code_set = set( code )
     hits = []
-    for sample, features_set in sfv_sets.items():
+    for sample, features_set in list(sfv_sets.items()):
         if code_set.issubset( features_set ):
             hits.append( sample )
     return hits
@@ -420,7 +420,7 @@ def funcDecode ( sfv, sample_codes, abund_detect ):
     """
     sfv_sets = funcSetForm( funcReduceSFV( sfv, abund_detect ) )
     sample_hits = {}
-    for sample, code in sample_codes.items():
+    for sample, code in list(sample_codes.items()):
         sample_hits[sample] = None if code is None else funcCheckOneCode( code, sfv_sets )
     return sample_hits
 
@@ -465,12 +465,12 @@ def main ( ):
         output_path = ".".join( items )
 
     # do this for either encoding/decoding
-    print >>sys.stderr, "loading table file:", table_path
+    sys.stderr.write("loading table file:" + table_path + "\n")
     sfv = funcLoadSFV( table_path, abund_nondetect )
 
     # make codes mode
     if codes_path is None:
-        print >>sys.stderr, "encoding the table"
+        sys.stderr.write("encoding the table\n")
         sample_codes = funcEncode( 
             sfv, 
             abund_detect=abund_detect, 
@@ -483,7 +483,7 @@ def main ( ):
 
     # compare codes to table mode
     else:
-        print >>sys.stderr, "decoding the table"
+        sys.stderr.write("decoding the table\n")
         sample_codes = funcReadCodes( codes_path )
         sample_hits = funcDecode( 
             sfv, 
