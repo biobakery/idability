@@ -14,6 +14,13 @@
 
 `idability.py` is a standalone python program which processes tabular data to build and evaluate hitting-set-based codes. Table rows represent features, and table columns represent "samples" or "subjects". The entry (*F*, *S*) represents subject *S*'s value for feature *F*. In their simplest form, values are 1s and 0s, representing the presence or absence (respectively) of a feature within a given subject. In this simple example:
 
+|    | S1 | S2 | S3 |
+|---:|---:|---:|---:|
+| F1 |  0 |  1 |  1 |
+| F2 |  1 |  0 |  1 |
+| F3 |  1 |  1 |  0 |
+| F4 |  1 |  1 |  1 |
+
 ```
    S1 S2 S3
 F1  0  1  1
