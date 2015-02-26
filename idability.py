@@ -297,7 +297,7 @@ def write_hits ( sample_hits, path ):
             hits = sample_hits[sample]
             items = [sample]
             if hits is None:
-                items += ["no_code", c_na]
+                items += ["no_code"]
             else:
                 items += ["matches" if len( hits ) > 0 else "no_matches"]
                 items += hits
