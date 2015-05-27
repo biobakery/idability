@@ -85,6 +85,12 @@ c_na = "#N/A"
 c_epsilon = 1e-20
 c_codes_extension = "codes.txt"
 c_hits_extension = "hits.txt"
+c_relab_detect = 0.001
+c_rpkm_detect = 5.0
+c_nondetect_multiplier = 0.01
+c_relax_multiplier = 0.1
+c_min_code_size = 7
+c_max_jaccard = 0.8
 
 # ---------------------------------------------------------------
 # arguments
@@ -432,12 +438,12 @@ def main ( ):
     # overrides
     if args.meta_mode != "off":
         choice = args.meta_mode
-        abund_detect = 5.0 if choice == "rpkm" else 0.001
-        abund_nondetect = abund_detect / 100.0
+        abund_detect = c_rpkm_detect if choice == "rpkm" else c_relab_detect
+        abund_nondetect = abund_detect * c_nondetect_multiplier
         # relax detection parameter in decoding step
-        abund_detect = abund_detect / 10.0 if args.codes is not None else abund_detect
-        similarity_cutoff = 0.8
-        min_code_size = 7
+        abund_detect = abund_detect * c_relax_multiplier if args.codes is not None else abund_detect
+        similarity_cutoff = c_max_jaccard
+        min_code_size = c_min_code_size
         ranking = "abundance_gap"
 
     # determine output file name
