@@ -33,7 +33,9 @@ A *code* is a set of features that uniquely identify a given subject, in the sen
 If you use `idability.py` or the datasets provided above in a publication, please cite:
 
 Franzosa EA, Katherine H, Meadow JF, Gevers D, Lemon KP, Bohannan BJM, Huttenhower C.
+
 [Identifying personal microbiomes using metagenomic codes.](http://www.pnas.org/content/early/2015/05/08/1423854112)
+
 Proceedings of the National Academy of Sciences (2015): 201423854.
 
 ##**Prerequisites**
