@@ -441,7 +441,7 @@ def main ( ):
         abund_detect = c_rpkm_detect if choice == "rpkm" else c_relab_detect
         abund_nondetect = abund_detect * c_nondetect_multiplier
         # relax detection parameter in decoding step
-        abund_detect = abund_detect * c_relax_multiplier if args.codes is not None else abund_detect
+        abund_detect = (abund_detect * c_relax_multiplier) if args.codes is not None else abund_detect
         similarity_cutoff = c_max_jaccard
         min_code_size = c_min_code_size
         ranking = "abundance_gap"
