@@ -28,6 +28,14 @@ A *code* is a set of features that uniquely identify a given subject, in the sen
 
 `idability.py` has been additionally optimized to build personalized codes from microbiome data (as derived from metagenomic sequencing experiments). In this context, minimal codes are suboptimal as they tend not to be robust to temporal variation, and so an alternative feature prioritization scheme is employed. Please refer to the [Advanced Configuration](#Advanced Configuration) and [Metagenomic Codes Demo](#Metagenomic Codes Demo) sections below for further details.
 
+##**Citation**
+
+If you use `idability.py` or the datasets provided above in a publication, please cite:
+
+Franzosa EA, Katherine H, Meadow JF, Gevers D, Lemon KP, Bohannan BJM, Huttenhower C.
+[Identifying personal microbiomes using metagenomic codes.](http://www.pnas.org/content/early/2015/05/08/1423854112)
+Proceedings of the National Academy of Sciences (2015): 201423854.
+
 ##**Prerequisites**
 
 ``idability.py`` requires python 2.7+.
@@ -180,8 +188,4 @@ The following datasets were used in the publication and are available for downlo
 * [Download OTU paired tables](https://bitbucket.org/biobakery/idability/downloads/otus-tables.tar.gz)
 * [Download MetaPhlAn species paired tables](https://bitbucket.org/biobakery/idability/downloads/species-tables.tar.gz)
 * [Download MetaPhlAn marker genes paired tables](https://bitbucket.org/biobakery/idability/downloads/markers-tables.tar.gz)
-* [Download Kilobase Windows paired tables](https://bitbucket.org/biobakery/idability/downloads/kbwindows-tables.tar.gz) 
-
-##**Citation**
-
-If you use `idability.py` or the datasets provided above in a publication, please cite: *forthcoming*.
+* [Download Kilobase Windows paired tables](https://bitbucket.org/biobakery/idability/downloads/kbwindows-tables.tar.gz)
